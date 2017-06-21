@@ -2,6 +2,7 @@ from __future__ import unicode_literals
 
 from django.db import models
 from datetime import datetime, timedelta
+from django.contrib import messages
 import re
 
 
@@ -48,53 +49,55 @@ class UserManager(models.Manager):
         if len(request.POST['birthday'])>0:
             birthday=datetime.strptime(request.POST['birthday'],'%Y-%m-%d')
         else:
+            messages.error(request,"Birthday field is not filled")
             return False
         print "Birthday: ", birthday
         password=request.POST['password']
         c_password=request.POST['confirm']
-
-        if 'errors' not in request.session.keys():
-            request.session['errors']=[]
+        error_count=0
         #check for first_name
         if not self.check_length(first_name):
-            request.session['errors'].append(['first_name',"The length of a name can't be less than two charcters."])
+            error_count+=1
+            messages.error(request,"The length of first name can't be less than two charcters.", 'first_name')
         #check for last_name
         if not self.check_length(last_name):
-            request.session['errors'].append(['last_name',"The length of a name can't be less than two charcters."])
+            error_count+=1
+            messages.error(request,"The length of last name can't be less than two charcters.",'last_name')
         #check email
         if not self.check_email(email):
-            request.session['errors'].append(['email',"Email invalid"])
+            error_count+=1
+            messages.error(request,"Email invalid",'email')
         # Check password
         if not self.check_password_length(password):
-            request.session['errors'].append(['password',"Password too short!"])
+            error_count+=1
+            messages.error(request,"Password too short!",'password')
         if not self.confirm_password(password,c_password):
-            request.session['errors'].append(['c_password',"Passwords don't match"])
+            error_count+=1
+            messages.error(request,"Passwords don't match",'c_password')
         if not self.birthday_check(birthday):
-            request.session['errors'].append(['birtdhay',"You have to be at least a day old to register"])
+            error_count+=1
+            messages.error(request,"You have to be at least a day old to register",'birtdhay')
+        print "Messages"*10,messages
 
-
-        if len(request.session['errors'])<1:
+        if error_count<1:
             self.create(first_name=first_name,last_name=last_name,email=email,password=password)
             return True
         else:
             return False
 
 
-        def login(self,request):
-            email=request.POST['email']
-            password=request.POST['password']
-            users=self.filter(email=email)
-            if users.count()< 1:
-                request.session['error'].append(['login',"Your email address is not registered, please register"])
-                return False
-            else:
-                for user in users:
-                    if password==user.password:
-                        return user
-                return False
-
-
-
+    def login(self,request):
+        email=request.POST['email']
+        password=request.POST['password']
+        users=self.filter(email=email)
+        if users.count()< 1:
+            request.session['error'].append(['login',"Your email address is not registered, please register"])
+            return False
+        else:
+            for user in users:
+                if password==user.password:
+                    return user
+            return False
 
 
 

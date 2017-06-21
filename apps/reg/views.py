@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Users
+from django.contrib import messages
 
 def index(request):
     return render(request,'reg/index.html')
@@ -12,7 +13,7 @@ def register(request):
                 'name':request.POST['first_name'],
                 'action': "registered"
             }
-
+            messages.success(request,'Successfully registered')
             return render(request,'reg/show.html', context)
         else:
             return redirect('/')
@@ -28,8 +29,9 @@ def login(request):
         else:
             context={
                 'name': login.first_name,
-                'from': "logged in"
+                'action': "logged in"
             }
+            messages.success(request,'Successfully logged in')
             return render(request,'reg/show.html', context)
 
     else:
