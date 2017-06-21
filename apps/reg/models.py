@@ -91,7 +91,7 @@ class UserManager(models.Manager):
         password=request.POST['password']
         users=self.filter(email=email)
         if users.count()< 1:
-            request.session['error'].append(['login',"Your email address is not registered, please register"])
+            messages.error(request,"Your email address is not registered, please register",'login')
             return False
         else:
             for user in users:
