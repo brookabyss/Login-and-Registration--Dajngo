@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
 from django.db import models
+from datetime import datetime, timedelta
 import re
+
+
 
 class UserManager(models.Manager):
 
@@ -27,12 +30,29 @@ class UserManager(models.Manager):
                 return False
         else:
                 return True
+    def birthday_check(self, birthday):
+        # you have to be at least a day old to register
+        current_date=datetime.now()-timedelta(days=1)
+        print "Date time now", datetime.now()
+        print"Current date #$^$%^$%^", current_date
+        if birthday < current_date:
+            return True
+        else:
+            return False
+
+
     def registration(self,request):
         first_name=request.POST['first_name']
         last_name=request.POST['last_name']
         email=request.POST['email']
+        if len(request.POST['birthday'])>0:
+            birthday=datetime.strptime(request.POST['birthday'],'%Y-%m-%d')
+        else:
+            return False
+        print "Birthday: ", birthday
         password=request.POST['password']
         c_password=request.POST['confirm']
+
         if 'errors' not in request.session.keys():
             request.session['errors']=[]
         #check for first_name
@@ -49,6 +69,8 @@ class UserManager(models.Manager):
             request.session['errors'].append(['password',"Password too short!"])
         if not self.confirm_password(password,c_password):
             request.session['errors'].append(['c_password',"Passwords don't match"])
+        if not self.birthday_check(birthday):
+            request.session['errors'].append(['birtdhay',"You have to be at least a day old to register"])
 
 
         if len(request.session['errors'])<1:
@@ -81,6 +103,7 @@ class Users(models.Model):
     last_name=models.CharField(max_length=255)
     email=models.CharField(max_length=255)
     password=models.CharField(max_length=255)
+    birthday=models.CharField(max_length=255)
     created_at=models.DateTimeField(auto_now_add=True)
     updated_at=models.DateTimeField(auto_now=True)
     objects=UserManager()

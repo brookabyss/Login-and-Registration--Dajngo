@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
 from .models import Users
+
 def index(request):
     return render(request,'reg/index.html')
 
@@ -12,7 +13,9 @@ def register(request):
                 'action': "registered"
             }
 
-        return render(request,'reg/show.html', context)
+            return render(request,'reg/show.html', context)
+        else:
+            return redirect('/')
     else:
         return redirect('/')
 
